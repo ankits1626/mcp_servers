@@ -15,8 +15,8 @@ import { z } from "zod";
 // =============================================================================
 
 const server = new McpServer({
-  name: "medium-reader-mcp",    // Server name (shown to clients)
-  version: "1.0.0"              // Server version
+  name: "medium-reader-mcp",
+  version: "1.0.0",
 });
 
 // =============================================================================
@@ -24,7 +24,7 @@ const server = new McpServer({
 // =============================================================================
 
 /**
- * Register the "ping" tool using registerTool (new API)
+ * Register the "ping" tool
  *
  * server.registerTool() takes:
  *   1. Tool name (string)
@@ -37,19 +37,19 @@ server.registerTool(
     title: "Ping Tool",
     description: "A simple ping tool that returns pong. Use this to test if the server is working.",
     inputSchema: {
-      message: z.string().optional().describe("Optional message to include in response")
-    }
+      message: z.string().optional().describe("Optional message to include in response"),
+    },
   },
-  async ({ message }) => {
+  async ({ message }: { message?: string }) => {
     const response = message ? `pong: ${message}` : "pong";
 
     return {
       content: [
         {
-          type: "text",
-          text: response
-        }
-      ]
+          type: "text" as const,
+          text: response,
+        },
+      ],
     };
   }
 );
@@ -58,7 +58,7 @@ server.registerTool(
 // 3. START THE SERVER
 // =============================================================================
 
-async function main() {
+async function main(): Promise<void> {
   // Create stdio transport (reads from stdin, writes to stdout)
   const transport = new StdioServerTransport();
 
@@ -70,7 +70,7 @@ async function main() {
 }
 
 // Run and handle errors
-main().catch((error) => {
+main().catch((error: unknown) => {
   console.error("Fatal error:", error);
   process.exit(1);
 });
