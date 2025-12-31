@@ -54,6 +54,49 @@ server.registerTool(
   }
 );
 
+/**
+ * Echo Tool
+ *
+ * Demonstrates:
+ * - Required vs optional parameters
+ * - Default values
+ * - Number constraints (min/max)
+ * - String transformation
+ */
+
+server.registerTool(
+  "echo",
+  {
+    title: "Echo Tool",
+    description:
+      "Echoes back text with optional transformations. Use for testing input handling.",
+    inputSchema: {
+      text: z.string().min(1).describe("The text to echo back"),
+      uppercase: z.boolean().default(false).describe("Convert to uppercase"),
+      repeat: z
+        .number()
+        .int()
+        .min(1)
+        .max(10)
+        .default(1)
+        .describe("How many times to repeat (1-10)"),
+    },
+  },
+  async ({ text, uppercase, repeat }: { text: string; uppercase: boolean; repeat: number }) => {
+    let result = text;
+
+    if (uppercase) {
+      result = result.toUpperCase();
+    }
+
+    const lines = Array(repeat).fill(result).join("\n");
+
+    return {
+      content: [{ type: "text" as const, text: lines }],
+    };
+  }
+);
+
 // =============================================================================
 // 3. START THE SERVER
 // =============================================================================
