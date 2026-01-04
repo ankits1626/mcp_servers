@@ -13,9 +13,11 @@ import {
   formatError,
   notMediumUrlError,
   invalidUrlError,
+  rateLimitedError,
 } from "../utils/error-messages.utils.js";
 import { getChromeCookies } from "../services/cookie.service.js";
 import { fetchWithAutoAuth } from "../services/http.service.js";
+import { consumeRateLimit } from "../services/rate-limiter.service.js";
 import { fetchViaGraphQL } from "../extractors/graphql.extractor.js";
 import { extractArticle } from "../extractors/html.extractor.js";
 import { TIMEOUTS } from "../config/index.js";
@@ -63,6 +65,23 @@ export function registerReadMediumTool(server: McpServer): void {
             {
               type: "text" as const,
               text: formatError(notMediumUrlError(url)),
+            },
+          ],
+          isError: true,
+        };
+      }
+
+      // Check rate limit before making any requests
+      const rateLimitResult = consumeRateLimit(url);
+      if (!rateLimitResult.allowed) {
+        console.error(
+          `Rate limited: ${rateLimitResult.remaining} remaining, resets in ${rateLimitResult.resetInMs}ms`
+        );
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: formatError(rateLimitedError(rateLimitResult.resetInMs)),
             },
           ],
           isError: true,
