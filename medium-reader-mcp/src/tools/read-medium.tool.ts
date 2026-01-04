@@ -9,7 +9,12 @@ import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { isMediumUrl, extractPostId } from "../utils/index.js";
 import { formatArticleOutput } from "../utils/markdown.utils.js";
-import { getChromeCookies, getCookiesWithFallback } from "../services/cookie.service.js";
+import {
+  formatError,
+  notMediumUrlError,
+  invalidUrlError,
+} from "../utils/error-messages.utils.js";
+import { getChromeCookies } from "../services/cookie.service.js";
 import { fetchWithAutoAuth } from "../services/http.service.js";
 import { fetchViaGraphQL } from "../extractors/graphql.extractor.js";
 import { extractArticle } from "../extractors/html.extractor.js";
@@ -36,13 +41,28 @@ export function registerReadMediumTool(server: McpServer): void {
       },
     },
     async ({ url, raw }: { url: string; raw: boolean }) => {
+      // Validate URL format
+      try {
+        new URL(url);
+      } catch {
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: formatError(invalidUrlError(url)),
+            },
+          ],
+          isError: true,
+        };
+      }
+
       // Validate it's a Medium URL
       if (!isMediumUrl(url)) {
         return {
           content: [
             {
               type: "text" as const,
-              text: `Not a Medium URL: ${url}. This tool only works with medium.com articles.`,
+              text: formatError(notMediumUrlError(url)),
             },
           ],
           isError: true,
@@ -98,12 +118,12 @@ export function registerReadMediumTool(server: McpServer): void {
         };
       }
 
-      // Fetch failed
+      // Fetch failed - error already formatted by http.service
       return {
         content: [
           {
             type: "text" as const,
-            text: `Failed to fetch Medium article: ${result.error}`,
+            text: `Failed to fetch Medium article:\n\n${result.error}`,
           },
         ],
         isError: true,
