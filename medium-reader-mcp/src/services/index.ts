@@ -3,3 +3,4 @@
  */
 
 export * from "./cookie.service.js";
+export * from "./http.service.js";
