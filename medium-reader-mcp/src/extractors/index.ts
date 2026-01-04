@@ -3,3 +3,4 @@
  */
 
 export * from "./graphql.extractor.js";
+export * from "./html.extractor.js";
