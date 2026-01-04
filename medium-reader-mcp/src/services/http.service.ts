@@ -6,7 +6,23 @@
 
 import { BROWSER_HEADERS, TIMEOUTS } from "../config/index.js";
 import type { FetchResult } from "../types/index.js";
-import { getChromeCookies, hasEnvCookies, getEnvCookies } from "./cookie.service.js";
+import {
+  formatError,
+  authRequiredError,
+  authExpiredError,
+  paywallError,
+  timeoutError,
+  networkError,
+  serverError,
+  articleNotFoundError,
+  rateLimitedError,
+  ErrorCode,
+} from "../utils/error-messages.utils.js";
+import {
+  getChromeCookies,
+  hasEnvCookies,
+  getEnvCookies,
+} from "./cookie.service.js";
 
 /**
  * Check if an error indicates authentication failure
@@ -21,7 +37,10 @@ export function isAuthError(error?: string): boolean {
     error.includes("401") ||
     error.includes("paywall") ||
     error.includes("expired") ||
-    error.includes("Authentication failed")
+    error.includes("Authentication failed") ||
+    error.includes(ErrorCode.AUTH_REQUIRED) ||
+    error.includes(ErrorCode.AUTH_EXPIRED) ||
+    error.includes(ErrorCode.PAYWALL)
   );
 }
 
@@ -58,20 +77,43 @@ export async function fetchWithCookies(
     clearTimeout(timeoutId);
 
     if (!response.ok) {
+      // Handle specific status codes with user-friendly messages
       if (response.status === 401 || response.status === 403) {
-        if (authenticated) {
-          return {
-            success: false,
-            error: `Authentication failed (${response.status}). Cookies may have expired.`,
-            authenticated,
-          };
-        }
+        const error = authenticated
+          ? authExpiredError()
+          : authRequiredError(response.status);
         return {
           success: false,
-          error: `Access denied (${response.status}). This article may require a Medium subscription.`,
+          error: formatError(error),
           authenticated,
         };
       }
+
+      if (response.status === 404) {
+        return {
+          success: false,
+          error: formatError(articleNotFoundError(url)),
+          authenticated,
+        };
+      }
+
+      if (response.status === 429) {
+        return {
+          success: false,
+          error: formatError(rateLimitedError(60000)),
+          authenticated,
+        };
+      }
+
+      if (response.status >= 500) {
+        return {
+          success: false,
+          error: formatError(serverError(response.status)),
+          authenticated,
+        };
+      }
+
+      // Generic HTTP error
       return {
         success: false,
         error: `HTTP ${response.status} ${response.statusText}`,
@@ -86,16 +128,9 @@ export async function fetchWithCookies(
       content.includes("Get unlimited access") ||
       content.includes("Read without limits")
     ) {
-      if (authenticated) {
-        return {
-          success: false,
-          error: "Got paywall despite authentication. Cookies may have expired.",
-          authenticated,
-        };
-      }
       return {
         success: false,
-        error: "Article is behind paywall.",
+        error: formatError(paywallError(authenticated)),
         authenticated,
       };
     }
@@ -105,12 +140,17 @@ export async function fetchWithCookies(
     if (error instanceof Error && error.name === "AbortError") {
       return {
         success: false,
-        error: `Request timed out after ${timeout}ms`,
+        error: formatError(timeoutError(timeout)),
         authenticated,
       };
     }
+
     const message = error instanceof Error ? error.message : "Unknown error";
-    return { success: false, error: message, authenticated };
+    return {
+      success: false,
+      error: formatError(networkError(message)),
+      authenticated,
+    };
   }
 }
 
