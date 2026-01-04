@@ -3,3 +3,4 @@
  */
 
 export * from "./url.utils.js";
+export * from "./markdown.utils.js";
