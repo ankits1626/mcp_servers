@@ -2,26 +2,85 @@
 
 **Goal**: Production-ready quality with robust error handling.
 
+**Status**: ✅ COMPLETE (2026-01-04)
+
 ---
 
-## Current State Audit
+## Completion Summary
+
+### What Was Implemented
+
+| Feature | Status | Files |
+|---------|--------|-------|
+| Centralized Error Messages | ✅ | `error-messages.utils.ts` |
+| URL Normalization | ✅ | `url.utils.ts` |
+| Retry with Exponential Backoff | ✅ | `retry.service.ts` |
+| Rate Limiting (Sliding Window) | ✅ | `rate-limiter.service.ts` |
+| GraphQL Retry Integration | ✅ | `graphql.extractor.ts` |
+| HTTP Retry Integration | ✅ | `http.service.ts` |
+| Content Truncation | ⏭️ Deferred | - |
+
+### Files Created
+- `src/types/retry.types.ts` - Retry configuration and result types
+- `src/types/rate-limit.types.ts` - Rate limit configuration and state types
+- `src/utils/error-messages.utils.ts` - User-friendly error messages
+- `src/services/retry.service.ts` - Exponential backoff with jitter
+- `src/services/rate-limiter.service.ts` - Sliding window rate limiter
+
+### Files Modified
+- `src/utils/url.utils.ts` - Added URL normalization, short link detection
+- `src/services/http.service.ts` - Integrated retry logic
+- `src/extractors/graphql.extractor.ts` - Added retry with timeout handling
+- `src/tools/read-medium.tool.ts` - Integrated rate limiting
+- `src/utils/index.ts` - Export new utilities
+- `src/services/index.ts` - Export new services
+- `src/types/index.ts` - Export new types
+
+---
+
+## Architecture Decisions
+
+### Higher-Order Functions vs Decorators
+Chose HOFs over TypeScript decorators because:
+1. Our codebase is functional, not class-based
+2. Decorators require `experimentalDecorators` and add complexity
+3. HOFs are native JavaScript and more composable
+
+See: [DECORATORS_VS_HOF.md](./DECORATORS_VS_HOF.md)
+
+### Rate Limiting Strategy
+Implemented sliding window per-domain limiting:
+- Default: 10 requests per minute per domain
+- Prevents abuse while allowing normal usage
+- In-memory storage (resets on restart - acceptable for MCP)
+
+### Retry Strategy
+Exponential backoff with jitter:
+- Default: 3 retries, 1s initial delay, 2x multiplier
+- Jitter prevents thundering herd
+- Only retries transient errors (5xx, network, timeout)
+
+---
+
+## Current State
 
 ### What We Have
 - ✅ Basic error handling (network errors, timeouts, HTTP errors)
 - ✅ Auth failure detection (401, 403, paywall detection)
 - ✅ Cookie fallback chain (env → Chrome → unauthenticated)
 - ✅ Timeout handling with AbortController
+- ✅ Centralized error messages with actionable guidance
+- ✅ URL normalization for various Medium formats
+- ✅ Retry logic with exponential backoff
+- ✅ Rate limiting (10 req/min per domain)
 
-### What's Missing
-1. **Retry Logic** - No retries on transient failures
-2. **Rate Limiting** - No protection against hammering Medium
-3. **Long Article Handling** - No truncation/chunking for very long articles
-4. **Better Error Messages** - Could be more user-friendly
-5. **URL Format Handling** - Various Medium URL formats not fully tested
+### Deferred to Future Iteration
+1. **Long Article Handling** - Content truncation for very long articles
+2. **Output Format Options** - Summary, outline, full modes
 
 ---
 
-## Implementation Plan
+## Original Implementation Plan
 
 ### Step 1: Enhanced Error Messages
 Make errors actionable with clear next steps.
