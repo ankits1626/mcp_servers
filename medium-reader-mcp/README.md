@@ -240,12 +240,12 @@ This will:
 
 ## Available Tools
 
-| Tool | Description |
-|------|-------------|
+| Tool                  | Description                                                                        |
+| --------------------- | ---------------------------------------------------------------------------------- |
 | `read_medium_article` | Fetch a Medium article and return as Markdown. Supports premium content with auth. |
-| `ping` | Simple ping tool that returns "pong". Use to test server connectivity. |
-| `echo` | Echo back text with optional transformations. |
-| `fetch_url` | Fetch raw content from any URL. |
+| `ping`                | Simple ping tool that returns "pong". Use to test server connectivity.             |
+| `echo`                | Echo back text with optional transformations.                                      |
+| `fetch_url`           | Fetch raw content from any URL.                                                    |
 
 ### Example: read_medium_article
 
@@ -314,13 +314,13 @@ medium-reader-mcp/
 
 The server provides user-friendly error messages with actionable suggestions:
 
-| Error | Message |
-|-------|---------|
+| Error           | Message                                                                |
+| --------------- | ---------------------------------------------------------------------- |
 | Premium content | "This article requires Medium membership. Log in to Chrome to access." |
-| Session expired | "Your Medium session has expired. Please log in again." |
-| Rate limited | "Too many requests. Please wait X seconds before trying again." |
-| Invalid URL | "Not a valid Medium URL. Supported formats: medium.com/@user/..." |
-| Network error | "Network error occurred. The request will be retried automatically." |
+| Session expired | "Your Medium session has expired. Please log in again."                |
+| Rate limited    | "Too many requests. Please wait X seconds before trying again."        |
+| Invalid URL     | "Not a valid Medium URL. Supported formats: medium.com/@user/..."      |
+| Network error   | "Network error occurred. The request will be retried automatically."   |
 
 ---
 
@@ -349,17 +349,17 @@ Automatic retry with exponential backoff for transient failures:
 
 ## Scripts Reference
 
-| Script | Command | Description |
-|--------|---------|-------------|
-| `build` | `tsc` | Compile TypeScript |
-| `start` | `node dist/index.js` | Run the server |
-| `dev` | `tsc && node dist/index.js` | Build and run |
-| `check` | `biome check src/` | Check linting + formatting |
-| `check:fix` | `biome check --write src/` | Auto-fix issues |
-| `lint` | `biome lint src/` | Lint only |
-| `format` | `biome format --write src/` | Format only |
-| `typecheck` | `tsc --noEmit` | Type check without emitting |
-| `ci` | `npm run check && npm run build` | Full CI check |
+| Script      | Command                          | Description                 |
+| ----------- | -------------------------------- | --------------------------- |
+| `build`     | `tsc`                            | Compile TypeScript          |
+| `start`     | `node dist/index.js`             | Run the server              |
+| `dev`       | `tsc && node dist/index.js`      | Build and run               |
+| `check`     | `biome check src/`               | Check linting + formatting  |
+| `check:fix` | `biome check --write src/`       | Auto-fix issues             |
+| `lint`      | `biome lint src/`                | Lint only                   |
+| `format`    | `biome format --write src/`      | Format only                 |
+| `typecheck` | `tsc --noEmit`                   | Type check without emitting |
+| `ci`        | `npm run check && npm run build` | Full CI check               |
 
 ---
 
@@ -390,6 +390,16 @@ See the `discussion/` folder for detailed documentation:
 - [TypeScript Guide](discussion/DETOUR_TYPESCRIPT_GUIDE.md) - TypeScript best practices
 
 ---
+
+---
+
+## 🛠️ Recent Contributions (shubham_attempt)
+
+Implemented the core functionality for the Medium Reader as per the Phase 1 goals:
+
+- **Enhanced URL Validation**: Integrated a robust gatekeeper in `src/utils.js` to validate Medium domains (Towards Data Science, UX Design, etc.).
+- **403 Bypass Logic**: Developed the primary fetcher in `src/fetcher.js` utilizing the Freedium proxy fallback.
+- **MCP Integration**: Successfully mapped the tool handlers to the SDK schemas in `src/index.js` for seamless Claude Code connectivity.
 
 ## License
 
